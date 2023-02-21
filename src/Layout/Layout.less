@@ -1,0 +1,41 @@
+.App {
+  .layout {
+    display: flex;
+    height: 100vh;
+
+    >header {
+      height: 48px;
+    }
+
+    .sider {
+      width: 250px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .content {
+      display: flex;
+      flex: 1;
+    }
+  }
+
+  .layout>header {
+    display: flex;
+    align-items: center;
+    box-shadow: 0 0 6px 2px rgba(0, 0, 0, .08);
+
+    .logo {
+      height: 30px;
+      animation: logo-spin infinite 20s linear;
+    }
+
+    @keyframes logo-spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  }
+}

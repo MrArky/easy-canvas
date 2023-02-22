@@ -38,15 +38,6 @@ const env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1));
 const useYarn = fs.existsSync(paths.yarnLockFile);
 const isInteractive = process.stdout.isTTY;
 
-/**
- * 重写配置
- */
-const path = require('path');
-const { override, addWebpackAlias } = require('customize-cra');
-module.exports = override(addWebpackAlias({
-  ['@']: path.resolve(__dirname, 'src')
-}));
-
 // Warn and crash if required files are missing
 if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
   process.exit(1);

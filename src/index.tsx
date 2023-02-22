@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.less';
-import Layout from './Layout/Layout';
+import DemoLayout from './layout/DemoLayout';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -9,7 +9,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <Layout />
+    <DemoLayout />
   </React.StrictMode>
 );
 

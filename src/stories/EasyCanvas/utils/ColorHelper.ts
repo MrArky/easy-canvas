@@ -49,6 +49,7 @@ export function setRgbTo16(str: string) {
  * @returns 
  */
 export function set10ToRgba(number: number) {
+    // const alpha = number >> 24 & 0xff;
     const alpha = 255;
     const red = number >> 16 & 0xff;
     const green = number >> 8 & 0xff;
@@ -77,4 +78,12 @@ export function set16To10(hex: string) {
         acc = 16 * acc + c;
         return acc;
     }, 0);
+}
+
+/**
+ * RGB转换为10进制
+ * @param str 
+ */
+export function setRgbTo10(str: string) {
+    return set16To10(setRgbTo16(str)?.replace('#', '')!);
 }

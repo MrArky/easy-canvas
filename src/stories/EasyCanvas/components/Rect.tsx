@@ -1,7 +1,8 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { RectProps } from "../typing";
-import { set10ToRgba, set16ToRgb } from "../utils/Common";
-import { StageContext } from "./Context";
+import { set10ToRgba } from "../utils/ColorHelper";
+import { StageContext } from "./../utils/Context";
+import ShapeDI from "./ShapeDI";
 
 /**
  * 矩形
@@ -9,14 +10,14 @@ import { StageContext } from "./Context";
  */
 const Rect: React.FC<RectProps> = (props) => {
     const { context, rgbContext } = useContext(StageContext);
-    useEffect(() => {
+    useMemo(() => {
         if (context && rgbContext) {
             context.save();
             context.beginPath();
             // context.strokeStyle = strokeColor;
             // context.lineWidth = strokeWidth;
-            context.fillStyle = '#FFFFFF';
-            context.fillRect(props.left, props.top, props.width, props.height);
+            context.fillStyle = props.fillStyle ?? '#000000';
+            context.fillRect(props.left ?? 0, props.top ?? 0, props.width, props.height);
             context.fill();
             context.stroke();
             context.restore();
@@ -25,14 +26,14 @@ const Rect: React.FC<RectProps> = (props) => {
             rgbContext.beginPath();
             // context.strokeStyle = strokeColor;
             // context.lineWidth = strokeWidth;
-            rgbContext.fillStyle = set10ToRgba(props.rgbIndex!);
-            rgbContext.fillRect(props.left, props.top, props.width, props.height);
+            rgbContext.fillStyle = set10ToRgba(props.offscreenIdx!);
+            rgbContext.fillRect(props.left ?? 0, props.top ?? 0, props.width, props.height);
             rgbContext.fill();
             rgbContext.stroke();
             rgbContext.restore();
         }
-    }, [context, rgbContext, props.rgbIndex]);
-    return <>{props.children}</>
+    }, [context, rgbContext, props.offscreenIdx,props]);
+    return <ShapeDI parentProps={props}>{props.children}</ShapeDI>
 }
 
 export default Rect;

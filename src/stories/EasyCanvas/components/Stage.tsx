@@ -1,73 +1,82 @@
-import { array } from "prop-types";
-import React, { DOMAttributes, useEffect, useMemo, useRef, useState } from "react";
-import { EventKey, StageProps } from "../typing";
-import { set16To10, setRgbTo16 } from "../utils/Common";
+import React, { useEffect, useRef, useState } from "react";
+import { EventDictionaryType, EventKey, StageProps } from "../typing";
+import { setRgbTo10 } from "../utils/ColorHelper";
 import { $eventNames } from "./../utils/Macro";
-import { StageContext } from "./Context";
-
-export declare type EventDictionaryType = { [key in keyof Omit<DOMAttributes<HTMLCanvasElement>, 'children' | 'dangerouslySetInnerHTML'>]?: { [rgbIndex: string]: (ev: DOMAttributes<HTMLCanvasElement>[key]) => void } };
+import { StageContext } from "./../utils/Context";
+import ShapeDI from "./ShapeDI";
 /**
  * 舞台
  * 内容渲染区
  * @returns 
  */
 const Stage: React.FC<StageProps> = (props: StageProps) => {
-    const ref = useRef(null);
-    const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-    const [rgbCtx, setrgbCtx] = useState<CanvasRenderingContext2D | null>(null);
-    const [rgbIndexPool] = useState<number[]>([]);
+    const ref = useRef(null);//用于存储canvas对象
+    const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);//图形绘制画板
+    const [offscreenCtx, setOffscreenCtx] = useState<CanvasRenderingContext2D | null>(null);//用于绘制ctx图形的idx生成的rgba影子
+    const [idxPool] = useState<number[]>([]);//用于存储已经生成的图形idx
+    const [lastShape] = useState<{ idx: number }>({ idx: -1 });//上一个图形的idx，主要用于实现图形的mouseenter、mouseleave等事件
+    if (props.actionRef) {
+        props.actionRef['current'] = {
+            clear: () => {
+                ctx?.clearRect(0, 0, (ref.current as unknown as HTMLCanvasElement).width, (ref.current as unknown as HTMLCanvasElement).height);
+                offscreenCtx?.clearRect(0, 0, (ref.current as unknown as HTMLCanvasElement).width, (ref.current as unknown as HTMLCanvasElement).height);
+            }
+        }
+    }
     //用于存储事件容器
-    const [eventDictionary, setEventDictionary] = useState<EventDictionaryType>({});
+    const [eventDictionary] = useState<EventDictionaryType>({});
     useEffect(() => {
         const canvas = ref.current as unknown as HTMLCanvasElement;
         setCtx(canvas.getContext('2d'));
         //创建一个用于鼠标跟踪图形的canvas上下文
-        const rgbCanvas = document.createElement('canvas');
-        rgbCanvas.width = props.width as number;
-        rgbCanvas.height = props.height as number;
-        let rgbContext = rgbCanvas.getContext('2d')
-        setrgbCtx(rgbContext);
-        for (let key of Object.keys(eventDictionary)) {
+        const offscreenCanvas = document.createElement('canvas');
+        offscreenCanvas.width = canvas.width;
+        offscreenCanvas.height = canvas.height;
+        let offscreenContext = offscreenCanvas.getContext('2d')
+        setOffscreenCtx(offscreenContext);
+        //使用$eventNames去遍历，可以省去对Effect对eventDictionary的依赖，同时性能也会更好
+        for (let key of /*Object.keys(eventDictionary)*/$eventNames) {
+            //给Stage注册事件
+            if (Object.keys(props).includes(key)) {
+                if (eventDictionary[key]) eventDictionary[key]!['0'] = props[key] as any;
+                else eventDictionary[key] = { 0: props[key] as any }
+            }
             canvas.addEventListener(key.slice(2).toLowerCase(), (e) => {
                 let event = e as MouseEvent;
-                let ragIndex = Array.from(rgbContext?.getImageData(event.offsetX, event.offsetY, 1, 1).data!);
-                eventDictionary[key as EventKey]?.[set16To10(setRgbTo16(`rgb(${ragIndex.slice(0, 3).join(',')})`)?.replace('#', '')!).toString()]?.(e as any);
+                let idx = setRgbTo10(`rgb(${Array.from(offscreenContext?.getImageData(event.offsetX, event.offsetY, 1, 1).data!).slice(0, 3).join(',')})`);
+                if ((key == "onMouseMove" || key == "onMouseMoveCapture")) {
+                    //key == "onMouseEnter" || key == "onMouseLeave" || key == "onMouseOver" || key == "onMouseOut" || key == "onMouseOverCapture" || key == "onMouseOutCapture"
+                    //这里需要注意的是onMouseEnter和onMouseLeave是不支持冒泡的
+                    //idx!=lastIdx既有上个元素的离开，也有当前元素的进入
+                    if (idx != lastShape.idx) {
+                        if (lastShape.idx >= 0) {
+                            eventDictionary['onMouseLeave']?.[lastShape.idx.toString()]?.(e as any);
+                            eventDictionary['onMouseOut']?.[lastShape.idx.toString()]?.(e as any);
+                            eventDictionary['onMouseOutCapture']?.[lastShape.idx.toString()]?.(e as any);
+                            eventDictionary['onMouseEnter']?.[idx.toString()]?.(e as any);
+                            eventDictionary['onMouseOver']?.[idx.toString()]?.(e as any);
+                            eventDictionary['onMouseOverCapture']?.[idx.toString()]?.(e as any);
+                        }
+                        lastShape.idx = idx;
+                    }
+                }
+                eventDictionary[key as EventKey]?.[idx.toString()]?.(e as any);
             });
         }
-    }, [props.children, eventDictionary]);
-    const children = useMemo(() => [props?.children ?? []].flat().map(c => {
-        //从1开始主要是rgbCanvas底色为白色,所以rgbIndex为0,同时后期stage自己的事件将会都注册到0上
-        let rgbIndex = rgbIndexPool?.[0] != undefined ? rgbIndexPool?.[0] + 1 : 1;
-        let ed = eventDictionary;
-        for (let propName of Object.keys(c.props)) {
-            if ($eventNames.includes(propName as EventKey)) {
-                ed = {
-                    ...ed,
-                    [propName]: {
-                        ...ed[propName as EventKey],
-                        [rgbIndex]: c.props[propName]
-                    }
-                };
-            }
-        }
-        setEventDictionary(ed);
-        rgbIndexPool.unshift(rgbIndex);
-        return {
-            ...c,
-            props: {
-                ...c.props,
-                rgbIndex: rgbIndex
-            }
-        }
-    }), [rgbIndexPool])
-    return <StageContext.Provider value={{ context: ctx, rgbContext: rgbCtx, eventDictionary, setEventDictionary }}>
+    }, [eventDictionary, lastShape]);
+    if (ctx && offscreenCtx) {
+        idxPool.splice(0,idxPool.length);
+        ctx?.clearRect(0, 0, (ref.current as unknown as HTMLCanvasElement).width, (ref.current as unknown as HTMLCanvasElement).height);
+        offscreenCtx?.clearRect(0, 0, (ref.current as unknown as HTMLCanvasElement).width, (ref.current as unknown as HTMLCanvasElement).height);
+    }
+    return <StageContext.Provider value={{ context: ctx, rgbContext: offscreenCtx, eventDictionary, idxPool }}>
         <canvas
             ref={ref}
             width={props.width}
             height={props.height}
-            style={{ backgroundColor: 'red' }}
+            style={props.style}
         />
-        {children}
+        <ShapeDI>{props.children}</ShapeDI>
     </StageContext.Provider>
 }
 

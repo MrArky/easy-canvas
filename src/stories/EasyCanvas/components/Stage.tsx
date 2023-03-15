@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { DOMAttributes, MouseEventHandler, useEffect, useRef, useState } from "react";
 import { EventDictionaryType, EventKey, StageProps } from "../typing";
 import { setRgbTo10 } from "../utils/ColorHelper";
 import { $eventNames } from "./../utils/Macro";
@@ -15,6 +15,7 @@ const Stage: React.FC<StageProps> = (props: StageProps) => {
     const [offscreenCtx, setOffscreenCtx] = useState<CanvasRenderingContext2D | null>(null);//用于绘制ctx图形的idx生成的rgba影子
     const [idxPool] = useState<number[]>([]);//用于存储已经生成的图形idx
     const [lastShape] = useState<{ idx: number }>({ idx: -1 });//上一个图形的idx，主要用于实现图形的mouseenter、mouseleave等事件
+    const [canvasEventsProps] = useState<{ [key in keyof Omit<DOMAttributes<HTMLCanvasElement>, 'children' | 'dangerouslySetInnerHTML'>]?: DOMAttributes<HTMLCanvasElement>[key] }>({});
     if (props.actionRef) {
         props.actionRef['current'] = {
             clear: () => {
@@ -41,8 +42,8 @@ const Stage: React.FC<StageProps> = (props: StageProps) => {
                 if (eventDictionary[key]) eventDictionary[key]!['0'] = props[key] as any;
                 else eventDictionary[key] = { 0: props[key] as any }
             }
-            canvas.addEventListener(key.slice(2).toLowerCase(), (e) => {
-                let event = e as MouseEvent;
+            canvasEventsProps[key] = (e) => {
+                let event = e.nativeEvent as MouseEvent;
                 let idx = setRgbTo10(`rgb(${Array.from(offscreenContext?.getImageData(event.offsetX, event.offsetY, 1, 1).data!).slice(0, 3).join(',')})`);
                 if ((key == "onMouseMove" || key == "onMouseMoveCapture")) {
                     //key == "onMouseEnter" || key == "onMouseLeave" || key == "onMouseOver" || key == "onMouseOut" || key == "onMouseOverCapture" || key == "onMouseOutCapture"
@@ -61,11 +62,13 @@ const Stage: React.FC<StageProps> = (props: StageProps) => {
                     }
                 }
                 eventDictionary[key as EventKey]?.[idx.toString()]?.(e as any);
-            });
+            };
+            //此处并不需要这句话，因为useEffect在return之前执行，同时后面canvasEventsProps永远不需要更新【一次注入了所有事件】
+            // setCanvasEventsProps({ ...canvasEventsProps });
         }
     }, [eventDictionary, lastShape]);
     if (ctx && offscreenCtx) {
-        idxPool.splice(0,idxPool.length);
+        idxPool.splice(0, idxPool.length);
         ctx?.clearRect(0, 0, (ref.current as unknown as HTMLCanvasElement).width, (ref.current as unknown as HTMLCanvasElement).height);
         offscreenCtx?.clearRect(0, 0, (ref.current as unknown as HTMLCanvasElement).width, (ref.current as unknown as HTMLCanvasElement).height);
     }
@@ -75,6 +78,7 @@ const Stage: React.FC<StageProps> = (props: StageProps) => {
             width={props.width}
             height={props.height}
             style={props.style}
+            {...canvasEventsProps}
         />
         <ShapeDI>{props.children}</ShapeDI>
     </StageContext.Provider>

@@ -14,7 +14,7 @@ const Template: ComponentStory<typeof Stage> = (args) => {
     const [greenSize, setGreenSize] = useState({ width: 30, height: 30 });
     const [position, setPosition] = useState({ left: 10, top: 10 });
     const [redPosition, setRedPosition] = useState({
-        left: 60,
+        left: 120,
         top: 50
     });
     const func = (ev: React.MouseEventHandler<HTMLCanvasElement> | undefined) => {
@@ -24,9 +24,9 @@ const Template: ComponentStory<typeof Stage> = (args) => {
     const [showBlue, setShowBlue] = useState(true);
     const [blueMouseEnter, setBlueMouseEnter] = useState(() => func)
     useEffect(() => {
-        let ps = { left: 60, top: 50 };
+        let ps = { left: 120, top: 50 };
         let redDirection = { x: 1, y: 1 };
-        let si = setInterval(() => {
+        let animate = () => {
             if (ps.left + 100 < (args.width ?? 600) && redDirection.x == 1) redDirection.x = 1
             else redDirection.x = -1
             if (ps.left > 0 && redDirection.x == -1) redDirection.x = -1
@@ -35,13 +35,18 @@ const Template: ComponentStory<typeof Stage> = (args) => {
             else redDirection.y = -1
             if (ps.top > 0 && redDirection.y == -1) redDirection.y = -1
             else redDirection.y = 1
-            ps.left += 0.5 * redDirection.x;
-            ps.top += 0.5 * redDirection.y;
+            ps.left += 2 * redDirection.x;
+            ps.top += 2 * redDirection.y;
             setRedPosition({ ...ps });
-        }, 1000 / 17);
-        return () => {
-            clearInterval(si);
-        }
+        };
+        // let si = setInterval(animate, 1000 / 60);
+        // return () => {
+        //     clearInterval(si);
+        // }
+        // (function animloop() {
+        //     animate();
+        //     window.requestAnimationFrame(animloop);
+        // })();
     }, []);
     return <>
         <Stage {...args} actionRef={ref} >
@@ -54,7 +59,13 @@ const Template: ComponentStory<typeof Stage> = (args) => {
                             width={100}
                             height={100}
                             onClick={() => { console.log('蓝色矩形被点击了') }}
-                            fillStyle={bkColor}
+                            style={{
+                                backgroundColor: bkColor,
+                                borderTopColor: 'red',
+                                borderWidth: 10,
+                                // borderRadius: 50,
+                                borderTopRightRadius:50
+                            }}
                             onMouseEnter={blueMouseEnter!}
                             onMouseLeave={() => {
                                 console.log('鼠标离开蓝色矩形了');
@@ -69,7 +80,9 @@ const Template: ComponentStory<typeof Stage> = (args) => {
                     width={100}
                     height={100}
                     onClick={() => { console.log('红色矩形被点击了') }}
-                    fillStyle="red"
+                    style={{
+                        backgroundColor: "#CCC",
+                    }}
                     onMouseEnter={() => console.log('鼠标进入红色矩形了')}
                     onMouseLeave={() => console.log('鼠标离开红色矩形了')}
                 >
@@ -79,7 +92,7 @@ const Template: ComponentStory<typeof Stage> = (args) => {
                         width={50}
                         height={50}
                         onClick={() => { console.log('黄色矩形被点击了') }}
-                        fillStyle="yellow"
+                        style={{ backgroundColor: "yellow" }}
                         onMouseEnter={() => console.log('鼠标进入黄色矩形了')}
                         onMouseLeave={() => console.log('鼠标离开黄色矩形了')}
                     >
@@ -89,7 +102,7 @@ const Template: ComponentStory<typeof Stage> = (args) => {
                             width={greenSize.width}
                             height={greenSize.height}
                             onClick={() => { console.log('绿色矩形被点击了') }}
-                            fillStyle="green"
+                            style={{ backgroundColor: "green" }}
                             onMouseEnter={() => console.log('鼠标进入绿色矩形了')}
                             onMouseLeave={() => console.log('鼠标离开绿色矩形了')}
                         >

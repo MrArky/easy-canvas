@@ -48,5 +48,22 @@ interface ShapeProps extends StageElement, ShapeEventProps {
  * 矩形属性
  */
 interface RectProps extends ShapeProps {
-    fillStyle?: string;
+    style?: {
+        backgroundColor?: string;
+        borderRadius?: number;
+        borderTopLeftRadius?: number;
+        borderTopRightRadius?: number;
+        borderBottomLeftRadius?: number;
+        borderBottomRightRadius?: number;
+        borderWidth?: number;
+        borderTopWidth?: number;
+        borderRightWidth?: number;
+        borderBottompWidth?: number;
+        borderLeftWidth?: number;
+        borderColor?: string;
+        borderTopColor?: string;
+        borderRightColor?: string;
+        borderBottomColor?: string;
+        borderLeftColor?: string;
+    }
 };

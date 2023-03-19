@@ -51,14 +51,14 @@ interface RectProps extends ShapeProps {
     style?: {
         backgroundColor?: string;
         borderRadius?: number;
-        borderTopLeftRadius?: number;
-        borderTopRightRadius?: number;
-        borderBottomLeftRadius?: number;
-        borderBottomRightRadius?: number;
+        borderTopLeftRadius?: number | [number, number];
+        borderTopRightRadius?: number | [number, number];
+        borderBottomLeftRadius?: number | [number, number];
+        borderBottomRightRadius?: number | [number, number];
         borderWidth?: number;
         borderTopWidth?: number;
         borderRightWidth?: number;
-        borderBottompWidth?: number;
+        borderBottomWidth?: number;
         borderLeftWidth?: number;
         borderColor?: string;
         borderTopColor?: string;

@@ -14,7 +14,7 @@ const Template: ComponentStory<typeof Stage> = (args) => {
     const [greenSize, setGreenSize] = useState({ width: 30, height: 30 });
     const [position, setPosition] = useState({ left: 10, top: 10 });
     const [redPosition, setRedPosition] = useState({
-        left: 120,
+        left: 140,
         top: 50
     });
     const func = (ev: React.MouseEventHandler<HTMLCanvasElement> | undefined) => {
@@ -62,9 +62,10 @@ const Template: ComponentStory<typeof Stage> = (args) => {
                             style={{
                                 backgroundColor: bkColor,
                                 borderTopColor: 'red',
+                                borderRadius: 20,
                                 borderWidth: 10,
                                 // borderRadius: 50,
-                                borderTopRightRadius:50
+                                borderTopLeftRadius: 50,
                             }}
                             onMouseEnter={blueMouseEnter!}
                             onMouseLeave={() => {

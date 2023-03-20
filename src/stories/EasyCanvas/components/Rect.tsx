@@ -72,22 +72,24 @@ const Rect: React.FC<RectProps> = (props) => {
                 brr: props.style?.borderBottomRightRadius ?? props.style?.borderRadius ?? 0,
             }
             let points = getRaduisPoint(params);
+            //#region 面积区
             context.save();
             context.beginPath();
-            // // context.strokeStyle = 'transparent';
-            // //绘制上左1/4圆弧
-            context.strokeStyle = 'red';
+            context.strokeStyle = 'transparent';
+            context.fillStyle = props.style?.backgroundColor ?? '#000000';
+            //绘制上左1/2圆弧
+            // context.strokeStyle = 'red';
             context.ellipse(
                 points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x,
                 points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y,
                 (points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x) - points[0][2].x,
                 (points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y) - points[0][4].y,
                 0,
-                Math.PI / 4 * 4,
+                Math.PI,
                 Math.PI * 3 / 2);
             //绘制上边线
             context.lineTo(points[1][4].x, points[1][4].y);
-            // //绘制上右1/4圆弧
+            //绘制上右1/2圆弧
             context.ellipse(
                 points[1][0].x,
                 points[1][0].y,
@@ -95,19 +97,10 @@ const Rect: React.FC<RectProps> = (props) => {
                 points[1][0].y - points[1][4].y,
                 0,
                 Math.PI / 2 * 3,
-                Math.PI / 4 * 7);
-            //绘制右上1/4圆弧
-            context.ellipse(
-                points[1][0].x,
-                points[1][0].y,
-                points[1][2].x - points[1][0].x,
-                points[1][0].y - points[1][4].y,
-                0,
-                Math.PI / 4 * 7,
                 Math.PI * 2);
             // 绘制右边线
             context.lineTo(points[2][2].x, points[2][2].y);
-            //绘制右下1/4圆弧
+            //绘制右下1/2圆弧
             context.ellipse(
                 points[2][0].x,
                 points[2][0].y,
@@ -115,19 +108,10 @@ const Rect: React.FC<RectProps> = (props) => {
                 points[2][4].y - points[2][0].y,
                 0,
                 0,
-                Math.PI / 4);
-            //绘制下右1/4圆弧
-            context.ellipse(
-                points[2][0].x,
-                points[2][0].y,
-                points[2][2].x - points[2][0].x,
-                points[2][4].y - points[2][0].y,
-                0,
-                Math.PI / 4,
                 Math.PI / 2);
             //绘制下边线
             context.lineTo(points[3][4].x, points[3][4].y);
-            //绘制下左1/4圆弧
+            //绘制下左1/2圆弧
             context.ellipse(
                 points[3][0].x,
                 points[3][0].y,
@@ -135,40 +119,74 @@ const Rect: React.FC<RectProps> = (props) => {
                 points[3][4].y - points[3][0].y,
                 0,
                 Math.PI / 2,
-                Math.PI / 4 * 3);
-            //绘制左下1/4圆弧
-            context.ellipse(
-                points[3][0].x,
-                points[3][0].y,
-                points[3][0].x - points[3][2].x,
-                points[3][4].y - points[3][0].y,
-                0,
-                Math.PI / 4 * 3,
                 Math.PI);
             //绘制左边线
             context.lineTo(points[0][2].x, points[0][2].y);
-            // r = props.style?.borderTopLeftRadius ?? props.style?.borderRadius ?? 0;
-            // //绘制左上1/4圆弧
-            // context.arc((props.left ?? 0) + r, (props.top ?? 0) + r, r, Math.PI, Math.PI / 4 * 5);
-            context.fillStyle = props.style?.backgroundColor ?? '#000000';
+            context.closePath();
             context.stroke();
             context.fill();
-            context.closePath();
+            //#endregion
 
+            //#region 回执边框
+            //上边框
+            //右边框
+            //下边框
+            //左边框
+            //#endregion
 
-
-
-
-
+            //#region offScreenCanvas识别区
             rgbContext.save();
             rgbContext.beginPath();
-            // context.strokeStyle = strokeColor;
-            // context.lineWidth = strokeWidth;
+            rgbContext.strokeStyle = 'transparent';
             rgbContext.fillStyle = set10ToRgba(props.offscreenIdx!);
-            rgbContext.fillRect(props.left ?? 0, props.top ?? 0, props.width, props.height);
-            rgbContext.fill();
+            //绘制上左1/2圆弧
+            rgbContext.ellipse(
+                points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x,
+                points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y,
+                typeof params.tlr === "number" ? params.tlr : params.tlr[0],
+                typeof params.tlr === "number" ? params.tlr : params.tlr[1],
+                0,
+                Math.PI,
+                Math.PI * 3 / 2);
+            //绘制上边线
+            rgbContext.lineTo(points[1][5].x, points[1][5].y);
+            //绘制上右1/2圆弧
+            rgbContext.ellipse(
+                points[1][0].x,
+                points[1][0].y,
+                typeof params.trr === "number" ? params.trr : params.trr[0],
+                typeof params.trr === "number" ? params.trr : params.trr[1],
+                0,
+                Math.PI / 2 * 3,
+                Math.PI * 2);
+            // 绘制右边线
+            rgbContext.lineTo(points[2][1].x, points[2][1].y);
+            //绘制右下1/2圆弧
+            rgbContext.ellipse(
+                points[2][0].x,
+                points[2][0].y,
+                typeof params.brr === "number" ? params.brr : params.brr[0],
+                typeof params.brr === "number" ? params.brr : params.brr[1],
+                0,
+                0,
+                Math.PI / 2);
+            //绘制下边线
+            rgbContext.lineTo(points[3][5].x, points[3][5].y);
+            //绘制下左1/4圆弧
+            rgbContext.ellipse(
+                points[3][0].x,
+                points[3][0].y,
+                typeof params.blr === "number" ? params.blr : params.blr[0],
+                typeof params.blr === "number" ? params.blr : params.blr[0],
+                0,
+                Math.PI / 2,
+                Math.PI);
+            //绘制左边线
+            rgbContext.lineTo(points[0][1].x, points[0][1].y);
+            rgbContext.closePath();
             rgbContext.stroke();
-            rgbContext.restore();
+            rgbContext.fill();
+            //#endregion
         }
     }, [context, rgbContext, props.offscreenIdx, props]);
     return <ShapeDI parentProps={props}>{props.children}</ShapeDI>

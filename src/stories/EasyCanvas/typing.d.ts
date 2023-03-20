@@ -50,7 +50,7 @@ interface ShapeProps extends StageElement, ShapeEventProps {
 interface RectProps extends ShapeProps {
     style?: {
         backgroundColor?: string;
-        borderRadius?: number;
+        borderRadius?: number | [number, number];
         borderTopLeftRadius?: number | [number, number];
         borderTopRightRadius?: number | [number, number];
         borderBottomLeftRadius?: number | [number, number];

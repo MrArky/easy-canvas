@@ -8,7 +8,7 @@ export default {
     component: Stage,
 } as ComponentMeta<typeof Stage>;
 
-const Template: ComponentStory<typeof Stage> = (args) => {
+const Template: ComponentStory<typeof Stage> = (args) => {                                  
     const ref = useRef<ActionType>();
     const [bkColor, setBkColor] = useState('blue');
     const [greenSize, setGreenSize] = useState({ width: 30, height: 30 });
@@ -62,10 +62,10 @@ const Template: ComponentStory<typeof Stage> = (args) => {
                             style={{
                                 backgroundColor: bkColor,
                                 borderTopColor: 'red',
-                                borderRadius: 20,
+                                borderRadius: 10,
                                 borderWidth: 10,
                                 // borderRadius: 50,
-                                borderTopLeftRadius: 50,
+                                borderTopLeftRadius: 10,
                             }}
                             onMouseEnter={blueMouseEnter!}
                             onMouseLeave={() => {

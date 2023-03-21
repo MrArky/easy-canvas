@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import { RectProps } from "../typing";
 import { set10ToRgba } from "../utils/ColorHelper";
 import { StageContext } from "./../utils/Context";
@@ -10,18 +10,42 @@ const getRaduisPoint = function (data: { width: number, height: number, top: num
     if (typeof trr === 'number') trr = [trr, trr];
     if (typeof blr === 'number') blr = [blr, blr];
     if (typeof brr === 'number') brr = [brr, brr];
+    const get1316XY = (a: number, b: number, point: 3 | 6) => {
+        if (typeof tlr === 'number') tlr = [tlr, tlr];
+        if (point == 3) {
+            if (left + (tlr[0] > lw ? tlr[0] : lw) == 0 && top + (tlr[1] > tw ? tlr[1] : tw) == 0) {
+                return { x: 0, y: 0 };
+            }
+        }
+        else {
+            if (tlr[0] == 0 || tlr[1] == 0) {
+                return { x: 0, y: 0 };
+            }
+        }
+        let k = tlr[0] - tlr[1] * lw / tw;
+        k = isNaN(k) ? 0 : k;
+        let A = Math.pow(b, 2) + Math.pow(a, 2) * Math.pow(tw, 2) / Math.pow(lw, 2);
+        let B = 2 * Math.pow(a, 2) * tw * k / lw;
+        let C = Math.pow(a, 2) * (Math.pow(k, 2) - Math.pow(b, 2));
+        let x1 = (-B + Math.sqrt(Math.pow(B, 2) - 4 * A * C)) / (2 * A);
+        let x2 = (-B - Math.sqrt(Math.pow(B, 2) - 4 * A * C)) / (2 * A);
+        let x = Math.min(x1, x2);
+        let y = -x * tw / lw - k;
+        console.log({ x, y })
+        return { x, y };
+    }
     return [
         [
-            { x: left + (tlr[0] > lw ? tlr[0] : lw), y: top + (tlr[1] > tw ? tlr[1] : tw) },
+            { x: left + (tlr[0] > lw ? tlr[0] : lw), y: top + (tlr[1] > tw ? tlr[1] : tw), x1: left + tlr[0], y1: top + tlr[1] },
             { x: left, y: top + tlr[1] },
             { x: left + lw, y: top + (tlr[1] > tw ? tlr[1] : tw) },
-            { x: 0, y: 0 },
+            { x: left + (tlr[0] > lw ? tlr[0] : lw) + get1316XY(tlr[0] - lw, tlr[1] - tw, 3).x, y: top + (tlr[1] > tw ? tlr[1] : tw) - get1316XY(tlr[0] - lw, tlr[1] - tw, 3).y },
             { x: left + (tlr[0] < lw ? 0 : lw), y: top + tw },
             { x: left + tlr[0], y: top },
-            { x: 0, y: 0 },
+            { x: left + tlr[0] + get1316XY(tlr[0], tlr[1], 6).x, y: top + tlr[1] - get1316XY(tlr[0], tlr[1], 6).y },
         ],
         [
-            { x: lw + left + width + (rw > trr[0] ? 0 : rw - trr[0]), y: top + (trr[1] > tw ? trr[1] : tw) },
+            { x: lw + left + width + (rw > trr[0] ? 0 : rw - trr[0]), y: top + (trr[1] > tw ? trr[1] : tw), x1: lw + left + width + rw - trr[0], y1: top + trr[1] },
             { x: lw + left + width + rw, y: top + trr[1] },
             { x: lw + left + width, y: top + trr[1] },
             { x: 0, y: 0 },
@@ -30,7 +54,7 @@ const getRaduisPoint = function (data: { width: number, height: number, top: num
             { x: 0, y: 0 },
         ],
         [
-            { x: lw + left + width + (rw > brr[0] ? 0 : rw - brr[0]), y: top + tw + height + (bw > brr[1] ? 0 : bw - brr[1]) },
+            { x: lw + left + width + (rw > brr[0] ? 0 : rw - brr[0]), y: top + tw + height + (bw > brr[1] ? 0 : bw - brr[1]), x1: lw + left + width + rw - brr[0], y1: top + tw + height + bw - brr[1] },
             { x: lw + left + width + rw, y: top + tw + height - brr[1] },
             { x: lw + left + width, y: top + tw + height + (bw > brr[1] ? 0 : bw - brr[1]) },
             { x: 0, y: 0 },
@@ -39,7 +63,7 @@ const getRaduisPoint = function (data: { width: number, height: number, top: num
             { x: 0, y: 0 },
         ],
         [
-            { x: left + (blr[0] > lw ? blr[0] : lw), y: top + tw + height + (bw > blr[1] ? 0 : bw - blr[1]) },
+            { x: left + (blr[0] > lw ? blr[0] : lw), y: top + tw + height + (bw > blr[1] ? 0 : bw - blr[1]), x1: left + blr[0], y1: top + tw + height + bw - blr[1] },
             { x: left, y: top + tw + height + bw - blr[1] },
             { x: left + lw, y: top + tw + height + (bw > blr[1] ? 0 : bw - blr[1]) },
             { x: 0, y: 0 },
@@ -127,8 +151,42 @@ const Rect: React.FC<RectProps> = (props) => {
             context.fill();
             //#endregion
 
-            //#region 回执边框
+
+            //#region 绘制边框
+            context.strokeStyle = 'transparent';
+            //获取上边框颜色
+            context.fillStyle = props.style?.borderTopColor ?? props.style?.borderColor ?? '#000000';
+            //绘制上左1/4圆弧
+            context.save();
+            context.beginPath();
+            context.moveTo(params.tlr as [number, number][1] < params.lw ? params.left : points[0][1].x, params.tlr as [number, number][1] < params.lw ? params.top + params.tw : points[0][1].y);
+            context.lineTo(points[0][2].x, points[0][2].y);
+            context.ellipse(
+                points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x,
+                points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y,
+                (points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x) - points[0][2].x,
+                (points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y) - points[0][4].y,
+                0,
+                Math.PI,
+                Math.atan(points[0][3].y / Math.abs(points[0][3].x)) + Math.PI
+            );
+            context.lineTo(points[0][6].x, points[0][6].y);
+            context.ellipse(
+                points[0][0].x1!,
+                points[0][0].y1!,
+                params.tlr as [number, number][0],
+                params.tlr as [number, number][1],
+                0,
+                Math.atan(points[0][6].y / Math.abs(points[0][6].x)) + Math.PI,
+                Math.PI,
+                true
+            );
+            context.closePath();
+            context.stroke();
+            context.fill();
+
             //上边框
+            //绘制上右1/4圆弧
             //右边框
             //下边框
             //左边框
@@ -141,8 +199,8 @@ const Rect: React.FC<RectProps> = (props) => {
             rgbContext.fillStyle = set10ToRgba(props.offscreenIdx!);
             //绘制上左1/2圆弧
             rgbContext.ellipse(
-                points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x,
-                points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y,
+                points[0][0].x1!,
+                points[0][0].y1!,
                 typeof params.tlr === "number" ? params.tlr : params.tlr[0],
                 typeof params.tlr === "number" ? params.tlr : params.tlr[1],
                 0,
@@ -152,8 +210,8 @@ const Rect: React.FC<RectProps> = (props) => {
             rgbContext.lineTo(points[1][5].x, points[1][5].y);
             //绘制上右1/2圆弧
             rgbContext.ellipse(
-                points[1][0].x,
-                points[1][0].y,
+                points[1][0].x1!,
+                points[1][0].y1!,
                 typeof params.trr === "number" ? params.trr : params.trr[0],
                 typeof params.trr === "number" ? params.trr : params.trr[1],
                 0,
@@ -163,8 +221,8 @@ const Rect: React.FC<RectProps> = (props) => {
             rgbContext.lineTo(points[2][1].x, points[2][1].y);
             //绘制右下1/2圆弧
             rgbContext.ellipse(
-                points[2][0].x,
-                points[2][0].y,
+                points[2][0].x1!,
+                points[2][0].y1!,
                 typeof params.brr === "number" ? params.brr : params.brr[0],
                 typeof params.brr === "number" ? params.brr : params.brr[1],
                 0,
@@ -174,8 +232,8 @@ const Rect: React.FC<RectProps> = (props) => {
             rgbContext.lineTo(points[3][5].x, points[3][5].y);
             //绘制下左1/4圆弧
             rgbContext.ellipse(
-                points[3][0].x,
-                points[3][0].y,
+                points[3][0].x1!,
+                points[3][0].y1!,
                 typeof params.blr === "number" ? params.blr : params.blr[0],
                 typeof params.blr === "number" ? params.blr : params.blr[0],
                 0,

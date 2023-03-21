@@ -11,6 +11,7 @@ import ShapeDI from "./ShapeDI";
  */
 const Stage: React.FC<StageProps> = (props: StageProps) => {
     const ref = useRef(null);//用于存储canvas对象
+    const offScreenRef = useRef(null);//用于存储canvas对象
     const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);//图形绘制画板
     const [offscreenCtx, setOffscreenCtx] = useState<CanvasRenderingContext2D | null>(null);//用于绘制ctx图形的idx生成的rgba影子
     const [idxPool] = useState<number[]>([]);//用于存储已经生成的图形idx
@@ -30,7 +31,7 @@ const Stage: React.FC<StageProps> = (props: StageProps) => {
         const canvas = ref.current as unknown as HTMLCanvasElement;
         setCtx(canvas.getContext('2d'));
         //创建一个用于鼠标跟踪图形的canvas上下文
-        const offscreenCanvas = document.createElement('canvas');
+        const offscreenCanvas = offScreenRef.current as unknown as HTMLCanvasElement; //document.createElement('canvas');
         offscreenCanvas.width = canvas.width;
         offscreenCanvas.height = canvas.height;
         let offscreenContext = offscreenCanvas.getContext('2d')
@@ -75,6 +76,13 @@ const Stage: React.FC<StageProps> = (props: StageProps) => {
     return <StageContext.Provider value={{ context: ctx, rgbContext: offscreenCtx, eventDictionary, idxPool }}>
         <canvas
             ref={ref}
+            width={props.width}
+            height={props.height}
+            style={props.style}
+            {...canvasEventsProps}
+        />
+        <canvas
+            ref={offScreenRef}
             width={props.width}
             height={props.height}
             style={props.style}

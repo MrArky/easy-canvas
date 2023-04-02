@@ -33,43 +33,45 @@ const getRaduisPoint = function (data: { width: number, height: number, top: num
         let y = -x * tw / lw - k;
         return { x, y };
     }
+    let totalWidth = left + lw + width + rw;
+    let totalHeight = top + tw + height + bw;
     return [
-        [
-            { x: left + (tlr[0] > lw && tlr[1] > tw ? tlr[0] : lw), y: top + (tlr[0] > lw && tlr[1] > tw ? tlr[1] : tw), x1: left + tlr[0], y1: top + tlr[1] },
-            { x: left, y: top + tlr[1] },
-            { x: left + lw, y: top + (tlr[1] > tw ? tlr[1] : tw) },
-            { x: left + (tlr[0] > lw && tlr[1] > tw? tlr[0] : lw) + get1316XY(tlr[0] - lw, tlr[1] - tw, 3).x, y: top + (tlr[0] > lw && tlr[1] > tw ? tlr[1] : tw) - get1316XY(tlr[0] - lw, tlr[1] - tw, 3).y, x1: get1316XY(tlr[0] - lw, tlr[1] - tw, 3).x, y1: get1316XY(tlr[0] - lw, tlr[1] - tw, 3).y },
-            { x: left + (tlr[0] < lw ? lw : tlr[0]), y: top + tw },
-            { x: left + tlr[0], y: top },
-            { x: left + (get1316XY(tlr[0], tlr[1], 6).x != 0 ? (tlr[0] + get1316XY(tlr[0], tlr[1], 6).x) : 0), y: top + (get1316XY(tlr[0], tlr[1], 6).y != 0 ? (tlr[1] - get1316XY(tlr[0], tlr[1], 6).y) : 0), x1: get1316XY(tlr[0], tlr[1], 6).x, y1: get1316XY(tlr[0], tlr[1], 6).y },
-        ],
-        [
-            { x: lw + left + width + (rw > trr[0] ? 0 : rw - trr[0]), y: top + (trr[1] > tw ? trr[1] : tw), x1: lw + left + width + rw - trr[0], y1: top + trr[1] },
-            { x: lw + left + width + rw, y: top + trr[1] },
-            { x: lw + left + width, y: top + trr[1] },
-            { x: 0, y: 0 },
-            { x: lw + left + width + (rw > trr[0] ? 0 : rw - trr[0]), y: top + tw },
-            { x: lw + left + width + (rw > trr[0] ? 0 : rw - trr[0]), y: top },
-            { x: 0, y: 0 },
-        ],
-        [
-            { x: lw + left + width + (rw > brr[0] ? 0 : rw - brr[0]), y: top + tw + height + (bw > brr[1] ? 0 : bw - brr[1]), x1: lw + left + width + rw - brr[0], y1: top + tw + height + bw - brr[1] },
-            { x: lw + left + width + rw, y: top + tw + height - brr[1] },
-            { x: lw + left + width, y: top + tw + height + (bw > brr[1] ? 0 : bw - brr[1]) },
-            { x: 0, y: 0 },
-            { x: lw + left + width + (rw > brr[0] ? 0 : rw - brr[0]), y: top + tw + height },
-            { x: lw + left + width + (rw > brr[0] ? 0 : rw - brr[0]), y: top + tw + height + bw },
-            { x: 0, y: 0 },
-        ],
-        [
-            { x: left + (blr[0] > lw ? blr[0] : lw), y: top + tw + height + (bw > blr[1] ? 0 : bw - blr[1]), x1: left + blr[0], y1: top + tw + height + bw - blr[1] },
-            { x: left, y: top + tw + height + bw - blr[1] },
-            { x: left + lw, y: top + tw + height + (bw > blr[1] ? 0 : bw - blr[1]) },
-            { x: 0, y: 0 },
-            { x: left + (blr[0] > lw ? blr[0] : lw), y: top + tw + height },
-            { x: left + blr[0], y: top + tw + height + bw },
-            { x: 0, y: 0 },
-        ],
+        (() => {
+            let outCentre = { x: left + tlr[0], y: top + tlr[1], a: tlr[0], b: tlr[1] };//外圆心
+            let outXCP = { x: outCentre.x, y: top };//外部与x平行边交点
+            let outYCP = { x: left, y: outCentre.y };//外部与y平行边交点
+            let innerCentre = outCentre.x > left + lw && outCentre.y > top + tw ? { ...outCentre, a: outCentre.x - left - lw, b: outCentre.y - top - tw } : { x: left + lw, y: top + tw, a: 0, b: 0 };//内圆心
+            let innerXCP = { x: innerCentre.x, y: top + tw };//内部与x平行边交点
+            let innerYCP = { x: left + lw, y: innerCentre.y };//内部与y平行边交点
+            return { outCentre, outXCP, outYCP, innerCentre, innerXCP, innerYCP }
+        })(),
+        (() => {
+            let outCentre = { x: totalWidth - trr[0], y: top + trr[1], a: trr[0], b: trr[1] };//外圆心
+            let outXCP = { x: outCentre.x, y: top };//外部与x平行边交点
+            let outYCP = { x: totalWidth, y: outCentre.y };//外部与y平行边交点
+            let innerCentre = outCentre.x < totalWidth - rw && outCentre.y > top + tw ? { ...outCentre, a: totalWidth - rw - outCentre.x, b: outCentre.y - top + tw } : { x: totalWidth - rw, y: top + tw, a: 0, b: 0 };//内圆心
+            let innerXCP = { x: innerCentre.x, y: top + tw };//内部与x平行边交点
+            let innerYCP = { x: totalWidth - rw, y: innerCentre.y };//内部与y平行边交点
+            return { outCentre, outXCP, outYCP, innerCentre, innerXCP, innerYCP }
+        })(),
+        (() => {
+            let outCentre = { x: totalWidth - brr[0], y: totalHeight - brr[1], a: brr[0], b: trr[1] };//外圆心和内圆心
+            let outXCP = { x: outCentre.x, y: totalHeight };//外部与x平行边交点
+            let outYCP = { x: totalWidth, y: outCentre.y };//外部与y平行边交点
+            let innerCentre = outCentre.x < totalWidth - rw && outCentre.y < totalHeight - bw ? { ...outCentre, a: totalWidth - rw - outCentre.x, b: totalHeight - bw - outCentre.y } : { x: totalWidth - rw, y: totalHeight - bw, a: 0, b: 0 };//内圆心
+            let innerXCP = { x: innerCentre.x, y: totalHeight - bw };//内部与x平行边交点
+            let innerYCP = { x: totalWidth - rw, y: innerCentre.y };//内部与y平行边交点
+            return { outCentre, outXCP, outYCP, innerCentre, innerXCP, innerYCP }
+        })(),
+        (() => {
+            let outCentre = { x: left + blr[0], y: totalHeight - blr[1], a: blr[0], b: blr[1] };//外圆心和内圆心
+            let outXCP = { x: outCentre.x, y: totalHeight };//外部与x平行边交点
+            let outYCP = { x: left, y: outCentre.y };//外部与y平行边交点
+            let innerCentre = outCentre.x > left + lw && outCentre.y < totalHeight - bw ? { ...outCentre, a: outCentre.x - left + lw, b: totalHeight - bw - outCentre.y } : { x: left + lw, y: totalHeight - bw, a: 0, b: 0 };//内圆心
+            let innerXCP = { x: innerCentre.x, y: totalHeight - bw };//内部与x平行边交点
+            let innerYCP = { x: left + lw, y: innerCentre.y };//内部与y平行边交点
+            return { outCentre, outXCP, outYCP, innerCentre, innerXCP, innerYCP }
+        })()
     ]
 }
 /**
@@ -98,135 +100,19 @@ const Rect: React.FC<RectProps> = (props) => {
             //#region 面积区
             context.save();
             context.beginPath();
-            context.strokeStyle = 'transparent';
+            // context.strokeStyle = 'transparent';
             context.fillStyle = props.style?.backgroundColor ?? '#000000';
-            //绘制上左1/2圆弧
-            // context.strokeStyle = 'red';
-            context.ellipse(
-                points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x,
-                points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y,
-                (points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x) - points[0][2].x,
-                (points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y) - points[0][4].y,
-                0,
-                Math.PI,
-                Math.PI * 3 / 2);
-            //绘制上边线
-            context.lineTo(points[1][4].x, points[1][4].y);
-            //绘制上右1/2圆弧
-            context.ellipse(
-                points[1][0].x,
-                points[1][0].y,
-                points[1][2].x - points[1][0].x,
-                points[1][0].y - points[1][4].y,
-                0,
-                Math.PI / 2 * 3,
-                Math.PI * 2);
-            // 绘制右边线
-            context.lineTo(points[2][2].x, points[2][2].y);
-            //绘制右下1/2圆弧
-            context.ellipse(
-                points[2][0].x,
-                points[2][0].y,
-                points[2][2].x - points[2][0].x,
-                points[2][4].y - points[2][0].y,
-                0,
-                0,
-                Math.PI / 2);
-            //绘制下边线
-            context.lineTo(points[3][4].x, points[3][4].y);
-            //绘制下左1/2圆弧
-            context.ellipse(
-                points[3][0].x,
-                points[3][0].y,
-                points[3][0].x - points[3][2].x,
-                points[3][4].y - points[3][0].y,
-                0,
-                Math.PI / 2,
-                Math.PI);
-            //绘制左边线
-            context.lineTo(points[0][2].x, points[0][2].y);
+            context.ellipse(points[0].innerCentre.x, points[0].innerCentre.y, points[0].innerCentre.a, points[0].innerCentre.b, 0, Math.PI, Math.PI / 2 * 3);
+            context.lineTo(points[1].innerXCP.x, points[1].innerXCP.y);
+            context.ellipse(points[1].innerCentre.x, points[1].innerCentre.y, points[1].innerCentre.a, points[1].innerCentre.b, 0, Math.PI / 2 * 3, Math.PI * 2);
+            context.lineTo(points[2].innerYCP.x, points[2].innerYCP.y);
+            context.ellipse(points[2].innerCentre.x, points[2].innerCentre.y, points[2].innerCentre.a, points[2].innerCentre.b, 0, 0, Math.PI / 2);
+            context.lineTo(points[3].innerXCP.x, points[3].innerXCP.y);
+            context.ellipse(points[3].innerCentre.x, points[3].innerCentre.y, points[3].innerCentre.a, points[3].innerCentre.b, 0, Math.PI / 2, Math.PI);
+            context.lineTo(points[0].innerYCP.x, points[0].innerYCP.y);
             context.closePath();
             context.stroke();
-            context.fill();
-            //#endregion
-
-
-            //#region 绘制边框
-            context.strokeStyle = 'transparent';
-            //获取上边框颜色
-            context.fillStyle = props.style?.borderTopColor ?? props.style?.borderColor ?? '#000000';
-            //#region 绘制上左1/4圆弧
-            context.save();
-            context.beginPath();
-            context.moveTo(points[0][1].x, points[0][1].y);
-            if (params.tlr[1] < params.tw) context.lineTo(params.left, params.top + params.tw);
-            context.lineTo(points[0][2].x, points[0][2].y);
-            console.log(points[0][0].x,points[0][0].y,points[0][0].x1,points[0][0].y1,params.left + params.lw,params.top + params.tw)
-            if (points[0][0].x == params.left + params.lw && points[0][0].y == params.top + params.tw) {
-                context.lineTo(points[0][0].x, points[0][0].y);
-            }
-            else {
-                context.ellipse(
-                    points[0][0].x,
-                    points[0][0].y,
-                    points[0][0].x - points[0][2].x,
-                    points[0][0].y - points[0][4].y,
-                    0,
-                    Math.PI,
-                    Math.atan(points[0][3].y1! / Math.abs(points[0][3].x1!)) + Math.PI
-                );
-            }
-            context.lineTo(points[0][6].x, points[0][6].y);
-            context.ellipse(
-                points[0][0].x1!,
-                points[0][0].y1!,
-                params.tlr[0],
-                params.tlr[1],
-                0,
-                Math.atan(-Math.pow(params.tlr[1], 2) * points[0][6].x1! / Math.pow(params.tlr[0], 2) * Math.pow(Math.pow(params.tlr[1], 2) - Math.pow(params.tlr[1], 2) * Math.pow(points[0][6].x1!, 2) / Math.pow(params.tlr[0], 2), -0.5)) + Math.PI,
-                Math.PI,
-                true
-            );
-            context.closePath();
-            context.stroke();
-            context.fill();
-            //#endregion
-            //绘制上左1/4圆弧
-            context.save();
-            context.beginPath();
-            context.strokeStyle = 'transparent';
-            context.moveTo(points[0][6].x, points[0][6].y);
-            context.ellipse(
-                points[0][0].x1!,
-                points[0][0].y1!,
-                params.tlr[0],
-                params.tlr[1],
-                0,
-                Math.atan(-Math.pow(params.tlr[1], 2) * points[0][6].x1! / Math.pow(params.tlr[0], 2) * Math.pow(Math.pow(params.tlr[1], 2) - Math.pow(params.tlr[1], 2) * Math.pow(points[0][6].x1!, 2) / Math.pow(params.tlr[0], 2), -0.5)) + Math.PI,
-                Math.PI / 2 * 3,
-            );
-            if (params.tlr[0] < params.lw) context.lineTo(params.left + params.lw, params.top);
-            context.lineTo(points[0][4].x, points[0][4].y);
-            context.ellipse(
-                points[0][0].x,
-                points[0][0].y,
-                (points[0][0].x < points[0][2].x ? points[0][2].x : points[0][0].x) - points[0][2].x,
-                (points[0][0].y < points[0][4].y ? points[0][4].y : points[0][0].y) - points[0][4].y,
-                0,
-                Math.PI / 2 * 3,
-                Math.atan(-Math.pow(params.tlr[1], 2) * points[0][6].x1! / Math.pow(params.tlr[0], 2) * Math.pow(Math.pow(params.tlr[1], 2) - Math.pow(params.tlr[1], 2) * Math.pow(points[0][6].x1!, 2) / Math.pow(params.tlr[0], 2), -0.5)) + Math.PI,
-                true
-            );
-            context.lineTo(params.left + params.lw, params.top + params.tw);
-            context.lineTo(points[0][6].x, points[0][6].y);
-            context.closePath();
-            context.stroke();
-            context.fill();
-            //上边框
-            //绘制上右1/4圆弧
-            //右边框
-            //下边框
-            //左边框
+            // context.fill();
             //#endregion
 
             //#region offScreenCanvas识别区
@@ -234,50 +120,14 @@ const Rect: React.FC<RectProps> = (props) => {
             rgbContext.beginPath();
             rgbContext.strokeStyle = 'transparent';
             rgbContext.fillStyle = set10ToRgba(props.offscreenIdx!);
-            //绘制上左1/2圆弧
-            rgbContext.ellipse(
-                points[0][0].x1!,
-                points[0][0].y1!,
-                params.tlr[0],
-                params.tlr[1],
-                0,
-                Math.PI,
-                Math.PI * 3 / 2);
-            //绘制上边线
-            rgbContext.lineTo(points[1][5].x, points[1][5].y);
-            //绘制上右1/2圆弧
-            rgbContext.ellipse(
-                points[1][0].x1!,
-                points[1][0].y1!,
-                params.trr[0],
-                params.trr[1],
-                0,
-                Math.PI / 2 * 3,
-                Math.PI * 2);
-            // 绘制右边线
-            rgbContext.lineTo(points[2][1].x, points[2][1].y);
-            //绘制右下1/2圆弧
-            rgbContext.ellipse(
-                points[2][0].x1!,
-                points[2][0].y1!,
-                params.brr[0],
-                params.brr[1],
-                0,
-                0,
-                Math.PI / 2);
-            //绘制下边线
-            rgbContext.lineTo(points[3][5].x, points[3][5].y);
-            //绘制下左1/4圆弧
-            rgbContext.ellipse(
-                points[3][0].x1!,
-                points[3][0].y1!,
-                params.blr[0],
-                params.blr[0],
-                0,
-                Math.PI / 2,
-                Math.PI);
-            //绘制左边线
-            rgbContext.lineTo(points[0][1].x, points[0][1].y);
+            rgbContext.ellipse(points[0].outCentre.x, points[0].outCentre.y, points[0].outCentre.a, points[0].outCentre.b, 0, Math.PI, Math.PI / 2 * 3);
+            rgbContext.lineTo(points[1].outXCP.x, points[1].outXCP.y);
+            rgbContext.ellipse(points[1].outCentre.x, points[1].outCentre.y, points[1].outCentre.a, points[1].outCentre.b, 0, Math.PI / 2 * 3, Math.PI * 2);
+            rgbContext.lineTo(points[2].outYCP.x, points[2].outYCP.y);
+            rgbContext.ellipse(points[2].outCentre.x, points[2].outCentre.y, points[2].outCentre.a, points[2].outCentre.b, 0, 0, Math.PI / 2);
+            rgbContext.lineTo(points[3].outXCP.x, points[3].outXCP.y);
+            rgbContext.ellipse(points[3].outCentre.x, points[3].outCentre.y, points[3].outCentre.a, points[3].outCentre.b, 0, Math.PI / 2, Math.PI);
+            rgbContext.lineTo(points[0].outYCP.x, points[0].outYCP.y);
             rgbContext.closePath();
             rgbContext.stroke();
             rgbContext.fill();

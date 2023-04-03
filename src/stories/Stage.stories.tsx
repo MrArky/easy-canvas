@@ -66,13 +66,13 @@ const Template: ComponentStory<typeof Stage> = (args) => {
                                 borderWidth: 40,
                                 borderLeftWidth: 30,
                                 borderTopWidth: 10,
-                                borderTopLeftRadius: [50, 50],
+                                borderTopLeftRadius: [40, 60],
                             }}
-                        // onMouseEnter={blueMouseEnter!}
-                        // onMouseLeave={() => {
-                        //     console.log('鼠标离开蓝色矩形了');
-                        //     setBkColor('blue');
-                        // }}
+                        onMouseEnter={blueMouseEnter!}
+                        onMouseLeave={() => {
+                            // console.log('鼠标离开蓝色矩形了');
+                            setBkColor('blue');
+                        }}
                         />}
                     </>
                 </>

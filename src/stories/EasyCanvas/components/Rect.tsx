@@ -3,36 +3,14 @@ import { RectProps } from "../typing";
 import { set10ToRgba } from "../utils/ColorHelper";
 import { StageContext } from "./../utils/Context";
 import ShapeDI from "./ShapeDI";
-
+const { pow, sqrt, min } = Math;
 const getRaduisPoint = function (data: { width: number, height: number, top: number, left: number, tw: number, rw: number, bw: number, lw: number, tlr: [number] | [number, number], trr: [number] | [number, number], blr: [number] | [number, number], brr: [number] | [number, number] }) {
     let { width, height, top, left, tw, rw, bw, lw, tlr, trr, blr, brr } = data;
     if (tlr.length == 1) tlr = [tlr[0], tlr[0]];
     if (trr.length == 1) trr = [trr[0], trr[0]];
     if (blr.length == 1) blr = [blr[0], blr[0]];
     if (brr.length == 1) brr = [brr[0], brr[0]];
-    const get1316XY = (a: number, b: number, point: 3 | 6) => {
-        if (tlr.length == 1) tlr = [tlr[0], tlr[0]];
-        if (point == 3) {
-            if (tlr[0] < lw || tlr[1] < tw) {
-                return { x: 0, y: 0 };
-            }
-        }
-        else {
-            if (tlr[0] == 0 || tlr[1] == 0) {
-                return { x: 0, y: 0 };
-            }
-        }
-        let k = tlr[0] - tlr[1] * lw / tw;
-        k = isNaN(k) ? 0 : k;
-        let A = Math.pow(b, 2) + Math.pow(a, 2) * Math.pow(tw, 2) / Math.pow(lw, 2);
-        let B = 2 * Math.pow(a, 2) * tw * k / lw;
-        let C = Math.pow(a, 2) * (Math.pow(k, 2) - Math.pow(b, 2));
-        let x1 = (-B + Math.sqrt(Math.pow(B, 2) - 4 * A * C)) / (2 * A);
-        let x2 = (-B - Math.sqrt(Math.pow(B, 2) - 4 * A * C)) / (2 * A);
-        let x = Math.min(x1, x2);
-        let y = -x * tw / lw - k;
-        return { x, y };
-    }
+    
     let totalWidth = left + lw + width + rw;
     let totalHeight = top + tw + height + bw;
     return [
@@ -40,15 +18,17 @@ const getRaduisPoint = function (data: { width: number, height: number, top: num
             let outCentre = { x: left + tlr[0], y: top + tlr[1], a: tlr[0], b: tlr[1] };//外圆心
             let outXCP = { x: outCentre.x, y: top };//外部与x平行边交点
             let outYCP = { x: left, y: outCentre.y };//外部与y平行边交点
+            let outSplit = { x: totalWidth, y: outCentre.y };
             let innerCentre = outCentre.x > left + lw && outCentre.y > top + tw ? { ...outCentre, a: outCentre.x - left - lw, b: outCentre.y - top - tw } : { x: left + lw, y: top + tw, a: 0, b: 0 };//内圆心
             let innerXCP = { x: innerCentre.x, y: top + tw };//内部与x平行边交点
             let innerYCP = { x: left + lw, y: innerCentre.y };//内部与y平行边交点
+            let innerSplit = { x: totalWidth, y: outCentre.y };
             return { outCentre, outXCP, outYCP, innerCentre, innerXCP, innerYCP }
         })(),
         (() => {
             let outCentre = { x: totalWidth - trr[0], y: top + trr[1], a: trr[0], b: trr[1] };//外圆心
             let outXCP = { x: outCentre.x, y: top };//外部与x平行边交点
-            let outYCP = { x: totalWidth, y: outCentre.y };//外部与y平行边交点
+            let outYCP = { x: totalWidth, y: outCentre.y };//外部与y平行边交点\
             let innerCentre = outCentre.x < totalWidth - rw && outCentre.y > top + tw ? { ...outCentre, a: totalWidth - rw - outCentre.x, b: outCentre.y - top + tw } : { x: totalWidth - rw, y: top + tw, a: 0, b: 0 };//内圆心
             let innerXCP = { x: innerCentre.x, y: top + tw };//内部与x平行边交点
             let innerYCP = { x: totalWidth - rw, y: innerCentre.y };//内部与y平行边交点
@@ -100,7 +80,7 @@ const Rect: React.FC<RectProps> = (props) => {
             //#region 面积区
             context.save();
             context.beginPath();
-            // context.strokeStyle = 'transparent';
+            context.strokeStyle = 'transparent';
             context.fillStyle = props.style?.backgroundColor ?? '#000000';
             context.ellipse(points[0].innerCentre.x, points[0].innerCentre.y, points[0].innerCentre.a, points[0].innerCentre.b, 0, Math.PI, Math.PI / 2 * 3);
             context.lineTo(points[1].innerXCP.x, points[1].innerXCP.y);
@@ -112,7 +92,7 @@ const Rect: React.FC<RectProps> = (props) => {
             context.lineTo(points[0].innerYCP.x, points[0].innerYCP.y);
             context.closePath();
             context.stroke();
-            // context.fill();
+            context.fill();
             //#endregion
 
             //#region offScreenCanvas识别区
